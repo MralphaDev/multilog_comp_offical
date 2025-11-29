@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import { motion, AnimatePresence } from "framer-motion";
 
 // ---------------- Variant Bar Charts ----------------
-function VariantBarCharts({ variants, logNames }) {
+function VariantBarCharts({ variants, logNames, selectedVariants, toggleVariant }) {
   if (!variants?.length || !logNames?.length) return null;
 
   return (
@@ -17,17 +17,28 @@ function VariantBarCharts({ variants, logNames }) {
           logIndex: (idx + 1).toString(),
           count: v.counts_per_log?.[idx] || 0
         }));
+        const isSelected = selectedVariants?.has(v.key);
         return (
           <div key={v.key} style={{
             marginBottom: 20,
             padding: 14,
             borderRadius: 14,
             background: "#fff",
-            boxShadow: "0 8px 20px rgba(0,0,0,0.08)"
+            boxShadow: "0 8px 20px rgba(0,0,0,0.08)",
+            border: isSelected ? "2px solid #4e79a7" : "2px solid transparent"
           }}>
-            <h4 style={{ marginBottom: 6, fontWeight: 600, fontSize: 12, color: "#111" }}>
-              {v.sequence.join("→")}
-            </h4>
+            <label style={{ display: "flex", alignItems: "center", marginBottom: 6, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => toggleVariant(v.key)}
+                style={{ marginRight: 8 }}
+              />
+              <span style={{ fontWeight: 600, fontSize: 12, color: "#111" }}>
+                {v.sequence.join("→")}
+              </span>
+              <small style={{ marginLeft: "auto", fontFamily: "monospace", color: "#666" }}>{v.total}</small>
+            </label>
             <ResponsiveContainer width="100%" height={120}>
               <BarChart layout="vertical" data={data} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -505,7 +516,7 @@ export default function Home() {
                 {f.name}
               </label>
             ))}
-            <VariantBarCharts variants={dfg?.variants} logNames={selectedLogs} />
+            <VariantBarCharts variants={dfg?.variants} logNames={selectedLogs} selectedVariants={selectedVariants} toggleVariant={toggleVariant} />
           </motion.div>
 
           <div style={{ flex: 1, padding: 30, overflowY: "auto" }}>
@@ -631,17 +642,6 @@ export default function Home() {
                 <label>Highlight Node Color
                   <input type="color" value={highlightColor} onChange={e => setHighlightColor(e.target.value)} style={{ width: "100%" }} />
                 </label>
-
-                <h3 style={{ marginTop: 20, fontWeight: 700, fontSize: 16 }}>Variants</h3>
-                {dfg?.variants?.length > 0 && dfg.variants.map(v => (
-                  <label key={v.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <span>
-                      <input type="checkbox" checked={selectedVariants.has(v.key)} onChange={() => toggleVariant(v.key)} style={{ marginRight: 8 }} />
-                      {v.sequence.join("→")}
-                    </span>
-                    <small style={{ fontFamily: "monospace" }}>{v.total}</small>
-                  </label>
-                ))}
               </div>
             </motion.div>
           </motion.div>
